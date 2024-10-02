@@ -1,0 +1,65 @@
+version: '3'
+
+tasks:
+  docker_prod:
+    desc: "Docker build and run."
+    aliases:
+      - prod
+    cmds:
+      - task: create_logs_folder
+      - task: create_migrations_folders
+      - task: docker_build
+      - task: docker_run
+      - task: copy_sso_migrations
+      - task: migrate_sso
+
+  create_logs_folder:
+    desc: "Create logs folder for docker volume purposes."
+    internal: true
+    cmds:
+      - mkdir -p logs/hmtm_bff
+      - mkdir -p logs/hmtm_sso
+
+  create_migrations_folders:
+    desc: "Create migrations folders for docker volume purposes."
+    internal: true
+    cmds:
+      - mkdir -p migrations/hmtm_sso
+
+  copy_sso_migrations:
+    desc: "
+    Copy migrations from docker volume.
+    https://stackoverflow.com/questions/32566624/docker-cp-all-files-from-a-folder-to-existing-container-folder 
+    https://docs.docker.com/reference/cli/docker/container/cp/
+    "
+    internal: true
+    cmd: sudo docker cp hmtm_sso:/app/migrations/. ./migrations/hmtm_sso
+
+  docker_build:
+    desc: "Build docker container."
+    aliases:
+      - build
+    cmd: sudo docker compose build
+
+  docker_run:
+    desc: "Launch docker container."
+    aliases:
+      - run
+    cmd: sudo docker compose up -d
+
+  docker_clean:
+    desc: "Clean docker containers, images and volumes."
+    aliases:
+      - clean
+    cmd: sudo docker system prune -a --volumes
+
+  migrate_sso:
+    desc: "Apply all available migrations for sso service."
+    internal: true
+    vars:
+      DIR: ./migrations/hmtm_sso
+      DRIVER: postgres
+      DATABASE_URL: "postgresql://hmtm_sso:hmtm_sso@0.0.0.0:15432/hmtm_sso"
+    cmds:
+      - go install github.com/pressly/goose/v3/cmd/goose@latest
+      - goose -dir {{.DIR}} {{.DRIVER}} {{.DATABASE_URL}} up

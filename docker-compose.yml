@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  hmtm_bff:
+    container_name: hmtm_bff
+    image: d3m0s/hmtm_bff:latest
+    ports:
+      - "8080:8080"
+    environment:
+      SSO_CLIENT_HOST: hmtm_sso
+    depends_on:
+      - hmtm_sso
+    volumes:
+      - ./logs/hmtm_bff:/app/logs
+
+  hmtm_sso:
+    container_name: hmtm_sso
+    image: d3m0s/hmtm_sso:latest
+    ports:
+      - "8070:8070"
+    environment:
+      POSTGRES_USER: hmtm_sso
+      POSTGRES_PASSWORD: hmtm_sso
+      POSTGRES_HOST: hmtm_sso_database
+      POSTGRES_PORT: 8071
+      POSTGRES_DB: hmtm_sso
+      POSTGRES_SSL_MODE: disable
+      POSTGRES_DRIVER: postgres
+    depends_on:
+      - hmtm_sso_database
+    volumes:
+      - ./logs/hmtm_sso:/app/logs
+
+  hmtm_sso_database:
+    container_name: hmtm_sso_database
+    hostname: hmtm_sso_database
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: hmtm_sso
+      POSTGRES_PASSWORD: hmtm_sso
+      PGHOST: hmtm_sso_database
+      PGPORT: 8071
+      PGDB: hmtm_sso
+    volumes:
+      - ./postgres_data/hmtmsso:/var/lib/postgresql/data
+      - ./postgres_backups/hmtmsso:/backups
+    ports:
+      - "15432:8071"
