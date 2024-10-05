@@ -37,20 +37,18 @@ tasks:
 
   docker_build:
     desc: "Build docker container."
-    aliases:
-      - build
     cmd: sudo docker compose build
 
   docker_run:
     desc: "Launch docker container."
-    aliases:
-      - run
     cmd: sudo docker compose up -d
+
+  docker_stop:
+    desc: "Stop all docker containers."
+    cmd:  sudo docker stop $(sudo docker ps -a -q)
 
   docker_clean:
     desc: "Clean docker containers, images and volumes."
-    aliases:
-      - clean
     cmd: sudo docker system prune -a --volumes
 
   migrate_sso:
@@ -63,3 +61,13 @@ tasks:
     cmds:
       - go install github.com/pressly/goose/v3/cmd/goose@latest
       - goose -dir {{.DIR}} {{.DRIVER}} {{.DATABASE_URL}} up
+
+  clean_up:
+    desc: "Clean up all folders, docker volumes, images and containers."
+    cmds:
+      - task: docker_stop
+      - sudo rm -rf logs/
+      - sudo rm -rf migrations/
+      - sudo rm -rf postgres_data/
+      - sudo rm -rf postgres_backups/
+      - task: docker_clean
