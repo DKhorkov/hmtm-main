@@ -12,6 +12,8 @@ tasks:
       - task: docker_run
       - task: copy_sso_migrations
       - task: migrate_sso
+      - task: copy_toys_migrations
+      - task: migrate_toys
 
   create_logs_folder:
     desc: "Create logs folder for docker volume purposes."
@@ -28,12 +30,17 @@ tasks:
 
   copy_sso_migrations:
     desc: "
-    Copy migrations from docker volume.
+    Copy SSO service migrations from docker volume.
     https://stackoverflow.com/questions/32566624/docker-cp-all-files-from-a-folder-to-existing-container-folder 
     https://docs.docker.com/reference/cli/docker/container/cp/
     "
     internal: true
     cmd: sudo docker cp hmtm_sso:/app/migrations/. ./migrations/hmtm_sso
+
+  copy_toys_migrations:
+    desc: "Copy Toys service migrations from docker volume."
+    internal: true
+    cmd: sudo docker cp hmtm_toys:/app/migrations/. ./migrations/hmtm_toys
 
   docker_build:
     desc: "Build docker container."
@@ -52,12 +59,23 @@ tasks:
     cmd: sudo docker system prune -a --volumes
 
   migrate_sso:
-    desc: "Apply all available migrations for sso service."
+    desc: "Apply all available migrations for SSO service."
     internal: true
     vars:
       DIR: ./migrations/hmtm_sso
       DRIVER: postgres
       DATABASE_URL: "postgresql://hmtm_sso:hmtm_sso@0.0.0.0:15432/hmtm_sso"
+    cmds:
+      - go install github.com/pressly/goose/v3/cmd/goose@latest
+      - goose -dir {{.DIR}} {{.DRIVER}} {{.DATABASE_URL}} up
+
+  migrate_toys:
+    desc: "Apply all available migrations for Toys service."
+    internal: true
+    vars:
+      DIR: ./migrations/hmtm_toys
+      DRIVER: postgres
+      DATABASE_URL: "postgresql://hmtm_toys:hmtm_toys@0.0.0.0:25432/hmtm_toys"
     cmds:
       - go install github.com/pressly/goose/v3/cmd/goose@latest
       - goose -dir {{.DIR}} {{.DRIVER}} {{.DATABASE_URL}} up

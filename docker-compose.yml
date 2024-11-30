@@ -8,6 +8,7 @@ services:
       - "8080:8080"
     environment:
       SSO_CLIENT_HOST: hmtm_sso
+      TOYS_CLIENT_HOST: hmtm_toys
       CORS_ALLOWED_ORIGINS: http://localhost:3000, http://localhost:3030, http://localhost:443
       CORS_ALLOWED_METHODS: GET, POST, DELETE, PUT, PATCH
       CORS_ALLOWED_HEADERS: Authorization, Content-Type, Accept, Accept-Encoding, X-CSRF-Token, Access-Control-Allow-Origin, X-Requested-With
@@ -15,6 +16,7 @@ services:
       CORS_MAX_AGE: 600
     depends_on:
       - hmtm_sso
+      - hmtm_toys
     volumes:
       - ./logs/hmtm_bff:/app/logs
 
@@ -52,3 +54,38 @@ services:
       - ./postgres_backups/hmtmsso:/backups
     ports:
       - "15432:8071"
+
+  hmtm_toys:
+    container_name: hmtm_toys
+    image: d3m0s/hmtm_toys:latest
+    ports:
+      - "8060:8060"
+    environment:
+      POSTGRES_USER: hmtm_toys
+      POSTGRES_PASSWORD: hmtm_toys
+      POSTGRES_HOST: hmtm_toys_database
+      POSTGRES_PORT: 8061
+      POSTGRES_DB: hmtm_toys
+      POSTGRES_SSL_MODE: disable
+      POSTGRES_DRIVER: postgres
+    depends_on:
+      - hmtm_toys_database
+    volumes:
+      - ./logs/hmtm_toys:/app/logs
+
+  hmtm_toys_database:
+    container_name: hmtm_toys_database
+    hostname: hmtm_toys_database
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: hmtm_toys
+      POSTGRES_PASSWORD: hmtm_toys
+      PGHOST: hmtm_toys_database
+      PGPORT: 8061
+      PGDB: hmtm_toys
+    volumes:
+      - ./postgres_data/hmtm_toys:/var/lib/postgresql/data
+      - ./postgres_backups/hmtm_toys:/backups
+    ports:
+      - "25432:8061"
