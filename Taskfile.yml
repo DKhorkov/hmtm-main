@@ -21,12 +21,14 @@ tasks:
     cmds:
       - mkdir -p logs/hmtm_bff
       - mkdir -p logs/hmtm_sso
+      - mkdir -p logs/hmtm_toys
 
   create_migrations_folders:
     desc: "Create migrations folders for docker volume purposes."
     internal: true
     cmds:
       - mkdir -p migrations/hmtm_sso
+      - mkdir -p migrations/hmtm_toys
 
   copy_sso_migrations:
     desc: "
