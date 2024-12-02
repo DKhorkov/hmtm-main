@@ -5,15 +5,9 @@ services:
     container_name: hmtm_bff
     image: d3m0s/hmtm_bff:latest
     ports:
-      - "8080:8080"
-    environment:
-      SSO_CLIENT_HOST: hmtm_sso
-      TOYS_CLIENT_HOST: hmtm_toys
-      CORS_ALLOWED_ORIGINS: http://localhost:3000, http://localhost:3030, http://localhost:443
-      CORS_ALLOWED_METHODS: GET, POST, DELETE, PUT, PATCH
-      CORS_ALLOWED_HEADERS: Authorization, Content-Type, Accept, Accept-Encoding, X-CSRF-Token, Access-Control-Allow-Origin, X-Requested-With
-      CORS_ALLOW_CREDENTIALS: true
-      CORS_MAX_AGE: 600
+      - "${HMTM_BFF_OUTER_PORT}:${HMTM_BFF_INNER_PORT}"
+    env_file:
+      - .env.bff
     depends_on:
       - hmtm_sso
       - hmtm_toys
@@ -24,15 +18,9 @@ services:
     container_name: hmtm_sso
     image: d3m0s/hmtm_sso:latest
     ports:
-      - "8070:8070"
-    environment:
-      POSTGRES_USER: hmtm_sso
-      POSTGRES_PASSWORD: hmtm_sso
-      POSTGRES_HOST: hmtm_sso_database
-      POSTGRES_PORT: 8071
-      POSTGRES_DB: hmtm_sso
-      POSTGRES_SSL_MODE: disable
-      POSTGRES_DRIVER: postgres
+      - "${HMTM_SSO_OUTER_PORT}:${HMTM_SSO_INNER_PORT}"
+    env_file:
+      - .env.sso
     depends_on:
       - hmtm_sso_database
     volumes:
@@ -43,31 +31,21 @@ services:
     hostname: hmtm_sso_database
     image: postgres
     restart: always
-    environment:
-      POSTGRES_USER: hmtm_sso
-      POSTGRES_PASSWORD: hmtm_sso
-      PGHOST: hmtm_sso_database
-      PGPORT: 8071
-      PGDB: hmtm_sso
+    env_file:
+      - .env.sso
     volumes:
       - ./postgres_data/hmtmsso:/var/lib/postgresql/data
       - ./postgres_backups/hmtmsso:/backups
     ports:
-      - "15432:8071"
+      - "${HMTM_SSO_DB_OUTER_PORT}:${HMTM_SSO_DB_INNER_PORT}"
 
   hmtm_toys:
     container_name: hmtm_toys
     image: d3m0s/hmtm_toys:latest
     ports:
-      - "8060:8060"
-    environment:
-      POSTGRES_USER: hmtm_toys
-      POSTGRES_PASSWORD: hmtm_toys
-      POSTGRES_HOST: hmtm_toys_database
-      POSTGRES_PORT: 8061
-      POSTGRES_DB: hmtm_toys
-      POSTGRES_SSL_MODE: disable
-      POSTGRES_DRIVER: postgres
+      - "${HMTM_TOYS_OUTER_PORT}:${HMTM_TOYS_INNER_PORT}"
+    env_file:
+      - .env.toys
     depends_on:
       - hmtm_toys_database
     volumes:
@@ -78,14 +56,10 @@ services:
     hostname: hmtm_toys_database
     image: postgres
     restart: always
-    environment:
-      POSTGRES_USER: hmtm_toys
-      POSTGRES_PASSWORD: hmtm_toys
-      PGHOST: hmtm_toys_database
-      PGPORT: 8061
-      PGDB: hmtm_toys
+    env_file:
+      - .env.toys
     volumes:
       - ./postgres_data/hmtm_toys:/var/lib/postgresql/data
       - ./postgres_backups/hmtm_toys:/backups
     ports:
-      - "25432:8061"
+      - "${HMTM_TOYS_DB_OUTER_PORT}:${HMTM_TOYS_DB_INNER_PORT}"
