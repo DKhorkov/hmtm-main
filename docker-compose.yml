@@ -11,6 +11,7 @@ services:
     depends_on:
       - hmtm_sso
       - hmtm_toys
+      - hmtm_tickets
     volumes:
       - ./logs/hmtm_bff:/app/logs
 
@@ -34,8 +35,8 @@ services:
     env_file:
       - .env.sso
     volumes:
-      - ./postgres_data/hmtmsso:/var/lib/postgresql/data
-      - ./postgres_backups/hmtmsso:/backups
+      - ./postgres_data/hmtm_sso:/var/lib/postgresql/data
+      - ./postgres_backups/hmtm_sso:/backups
     ports:
       - "${HMTM_SSO_DB_OUTER_PORT}:${HMTM_SSO_DB_INNER_PORT}"
 
@@ -63,3 +64,28 @@ services:
       - ./postgres_backups/hmtm_toys:/backups
     ports:
       - "${HMTM_TOYS_DB_OUTER_PORT}:${HMTM_TOYS_DB_INNER_PORT}"
+
+  hmtm_tickets:
+    container_name: hmtm_tickets
+    image: d3m0s/hmtm_tickets:latest
+    ports:
+      - "${HMTM_TICKETS_OUTER_PORT}:${HMTM_TICKETS_INNER_PORT}"
+    env_file:
+      - .env.tickets
+    depends_on:
+      - hmtm_tickets_database
+    volumes:
+      - ./logs/hmtm_tickets:/app/logs
+
+  hmtm_tickets_database:
+    container_name: hmtm_tickets_database
+    hostname: hmtm_tickets_database
+    image: postgres
+    restart: always
+    env_file:
+      - .env.tickets
+    volumes:
+      - ./postgres_data/hmtm_tickets:/var/lib/postgresql/data
+      - ./postgres_backups/hmtm_tickets:/backups
+    ports:
+      - "${HMTM_TICKETS_DB_OUTER_PORT}:${HMTM_TICKETS_DB_INNER_PORT}"
