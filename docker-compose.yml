@@ -9,11 +9,22 @@ services:
     env_file:
       - .env.bff
     depends_on:
+      - jaeger
       - hmtm_sso
       - hmtm_toys
       - hmtm_tickets
     volumes:
       - ./logs/hmtm_bff:/app/logs
+    networks:
+      - hmtm_network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "${TRACING_OUTER_API_TRACES_PORT}:${TRACING_INNER_API_TRACES_PORT}"
+      - "${TRACING_OUTER_WEB_PORT}:${TRACING_INNER_WEB_PORT}"
+    networks:
+      - hmtm_network
 
   hmtm_sso:
     container_name: hmtm_sso
@@ -26,6 +37,8 @@ services:
       - hmtm_sso_database
     volumes:
       - ./logs/hmtm_sso:/app/logs
+    networks:
+      - hmtm_network
 
   hmtm_sso_database:
     container_name: hmtm_sso_database
@@ -39,6 +52,8 @@ services:
       - ./postgres_backups/hmtm_sso:/backups
     ports:
       - "${HMTM_SSO_DB_OUTER_PORT}:${HMTM_SSO_DB_INNER_PORT}"
+    networks:
+      - hmtm_network
 
   hmtm_toys:
     container_name: hmtm_toys
@@ -51,6 +66,8 @@ services:
       - hmtm_toys_database
     volumes:
       - ./logs/hmtm_toys:/app/logs
+    networks:
+      - hmtm_network
 
   hmtm_toys_database:
     container_name: hmtm_toys_database
@@ -64,6 +81,8 @@ services:
       - ./postgres_backups/hmtm_toys:/backups
     ports:
       - "${HMTM_TOYS_DB_OUTER_PORT}:${HMTM_TOYS_DB_INNER_PORT}"
+    networks:
+      - hmtm_network
 
   hmtm_tickets:
     container_name: hmtm_tickets
@@ -76,6 +95,8 @@ services:
       - hmtm_tickets_database
     volumes:
       - ./logs/hmtm_tickets:/app/logs
+    networks:
+      - hmtm_network
 
   hmtm_tickets_database:
     container_name: hmtm_tickets_database
@@ -89,3 +110,8 @@ services:
       - ./postgres_backups/hmtm_tickets:/backups
     ports:
       - "${HMTM_TICKETS_DB_OUTER_PORT}:${HMTM_TICKETS_DB_INNER_PORT}"
+    networks:
+      - hmtm_network
+
+networks:
+  hmtm_network:

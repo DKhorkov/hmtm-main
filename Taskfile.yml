@@ -1,10 +1,8 @@
 version: '3'
 
 tasks:
-  docker_prod:
-    desc: "Docker build and run."
-    aliases:
-      - prod
+  up:
+    desc: "Run all microservices and theirs dependencies."
     cmds:
       - task: create_logs_folder
       - task: create_migrations_folders
@@ -16,6 +14,11 @@ tasks:
       - task: migrate_toys
       - task: copy_tickets_migrations
       - task: migrate_tickets
+
+  down:
+    desc: "Shutdown all microservices and theirs dependencies."
+    cmds:
+      - task: docker_stop
 
   create_logs_folder:
     desc: "Create logs folder for docker volume purposes."
@@ -113,10 +116,17 @@ tasks:
 
   clean_up:
     desc: "Clean up all folders, docker volumes, images and containers."
+    aliases:
+      - clean
     cmds:
-      - task: docker_stop
       - sudo rm -rf logs/
       - sudo rm -rf migrations/
       - sudo rm -rf postgres_data/
       - sudo rm -rf postgres_backups/
       - task: docker_clean
+
+  docker_network:
+    desc: "Create docker network for project."
+    aliases:
+      - network
+    cmd: sudo docker network create hmtm_network
