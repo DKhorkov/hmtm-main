@@ -44,3 +44,6 @@ venv.bak/
 # Backups:
 postgres_backups
 postgres_data
+
+# Secure:
+nats.conf

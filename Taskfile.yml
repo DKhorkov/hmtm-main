@@ -14,6 +14,8 @@ tasks:
       - task: migrate_toys
       - task: copy_tickets_migrations
       - task: migrate_tickets
+      - task: copy_notifications_migrations
+      - task: migrate_notifications
 
   down:
     desc: "Shutdown all microservices and theirs dependencies."
@@ -28,6 +30,7 @@ tasks:
       - mkdir -p logs/hmtm_sso
       - mkdir -p logs/hmtm_toys
       - mkdir -p logs/hmtm_tickets
+      - mkdir -p logs/hmtm_notifications
 
   create_migrations_folders:
     desc: "Create migrations folders for docker volume purposes."
@@ -36,6 +39,7 @@ tasks:
       - mkdir -p migrations/hmtm_sso
       - mkdir -p migrations/hmtm_toys
       - mkdir -p migrations/hmtm_tickets
+      - mkdir -p migrations/hmtm_notifications
 
   copy_sso_migrations:
     desc: "
@@ -55,6 +59,11 @@ tasks:
     desc: "Copy Tickets service migrations from docker volume."
     internal: true
     cmd: sudo docker cp hmtm_tickets:/app/migrations/. ./migrations/hmtm_tickets
+
+  copy_notifications_migrations:
+    desc: "Copy Notifications service migrations from docker volume."
+    internal: true
+    cmd: sudo docker cp hmtm_notifications:/app/migrations/. ./migrations/hmtm_notifications
 
   docker_build:
     desc: "Build docker container."
@@ -110,6 +119,20 @@ tasks:
       DIR: ./migrations/hmtm_tickets
       DRIVER: $POSTGRES_DRIVER
       DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$HMTM_TICKETS_DB_OUTER_HOST:$HMTM_TICKETS_DB_OUTER_PORT/$POSTGRES_DB"
+    cmds:
+      - go install github.com/pressly/goose/v3/cmd/goose@latest
+      - goose -dir {{.DIR}} {{.DRIVER}} {{.DATABASE_URL}} up
+
+  migrate_notifications:
+    desc: "Apply all available migrations for Notifications service."
+    internal: true
+    dotenv:
+      - .env
+      - .env.notifications
+    vars:
+      DIR: ./migrations/hmtm_notifications
+      DRIVER: $POSTGRES_DRIVER
+      DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$HMTM_NOTIFICATIONS_DB_OUTER_HOST:$HMTM_NOTIFICATIONS_DB_OUTER_PORT/$POSTGRES_DB"
     cmds:
       - go install github.com/pressly/goose/v3/cmd/goose@latest
       - goose -dir {{.DIR}} {{.DRIVER}} {{.DATABASE_URL}} up

@@ -7,14 +7,12 @@ task network -v
 
 To run all microservices and theirs dependencies in 
 docker, use next command (twice due to migrations work logics):
-
 ```bash
 task up -v
 ```
 
 To stop all microservices and theirs dependencies, 
 use next command:
-
 ```bash
 task down -v
 ```
@@ -28,3 +26,8 @@ task clean_up -v
 
 To see tracing open
 next [link](http://localhost:16686) in browser.
+
+## NATS
+
+To see NATS monitoring open
+next [link](http://localhost:8222) in browser.

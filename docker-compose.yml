@@ -13,6 +13,7 @@ services:
       - hmtm_sso
       - hmtm_toys
       - hmtm_tickets
+      - hmtm_notifications
     volumes:
       - ./logs/hmtm_bff:/app/logs
     networks:
@@ -35,6 +36,8 @@ services:
       - .env.sso
     depends_on:
       - hmtm_sso_database
+      - nats
+      - jaeger
     volumes:
       - ./logs/hmtm_sso:/app/logs
     networks:
@@ -64,6 +67,7 @@ services:
       - .env.toys
     depends_on:
       - hmtm_toys_database
+      - jaeger
     volumes:
       - ./logs/hmtm_toys:/app/logs
     networks:
@@ -93,6 +97,7 @@ services:
       - .env.tickets
     depends_on:
       - hmtm_tickets_database
+      - jaeger
     volumes:
       - ./logs/hmtm_tickets:/app/logs
     networks:
@@ -110,6 +115,51 @@ services:
       - ./postgres_backups/hmtm_tickets:/backups
     ports:
       - "${HMTM_TICKETS_DB_OUTER_PORT}:${HMTM_TICKETS_DB_INNER_PORT}"
+    networks:
+      - hmtm_network
+
+  hmtm_notifications:
+    container_name: hmtm_notifications
+    image: d3m0s/hmtm_notifications:latest
+    ports:
+      - "${HMTM_NOTIFICATIONS_OUTER_PORT}:${HMTM_NOTIFICATIONS_INNER_PORT}"
+    env_file:
+      - .env.notifications
+    depends_on:
+      - hmtm_notifications_database
+      - nats
+      - jaeger
+    volumes:
+      - ./logs/hmtm_notifications:/app/logs
+    networks:
+      - hmtm_network
+
+  hmtm_notifications_database:
+    container_name: hmtm_notifications_database
+    hostname: hmtm_notifications_database
+    image: postgres
+    restart: always
+    env_file:
+      - .env.notifications
+    volumes:
+      - ./postgres_data/hmtm_notifications:/var/lib/postgresql/data
+      - ./postgres_backups/hmtm_notifications:/backups
+    ports:
+      - "${HMTM_NOTIFICATIONS_DB_OUTER_PORT}:${HMTM_NOTIFICATIONS_DB_INNER_PORT}"
+    networks:
+      - hmtm_network
+
+  nats:
+    image: nats:alpine
+    container_name: nats
+    restart: always
+    command: -c /etc/nats/nats.conf
+    ports:
+      - "${NATS_OUTER_CLIENT_PORT}:${NATS_INNER_CLIENT_PORT}"
+      - "${NATS_OUTER_CLUSTER_PORT}:${NATS_INNER_CLUSTER_PORT}"
+      - "${NATS_OUTER_WEB_PORT}:${NATS_INNER_WEB_PORT}"
+    volumes:
+      - ./nats.conf:/etc/nats/nats.conf
     networks:
       - hmtm_network
 
