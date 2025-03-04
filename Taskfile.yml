@@ -4,10 +4,15 @@ tasks:
   up:
     desc: "Run all microservices and theirs dependencies."
     cmds:
+      # Prepare infrastructure:
       - task: create_logs_folder
       - task: create_migrations_folders
+
+      # Build app:
       - task: docker_build
       - task: docker_run
+
+      # Prepare migrations:
       - task: copy_sso_migrations
       - task: migrate_sso
       - task: copy_toys_migrations
