@@ -68,6 +68,7 @@ services:
     depends_on:
       - hmtm_toys_database
       - jaeger
+      - hmtm_sso
     volumes:
       - ./logs/hmtm_toys:/app/logs
     networks:
@@ -98,6 +99,7 @@ services:
     depends_on:
       - hmtm_tickets_database
       - jaeger
+      - hmtm_toys
     volumes:
       - ./logs/hmtm_tickets:/app/logs
     networks:
@@ -129,6 +131,9 @@ services:
       - hmtm_notifications_database
       - nats
       - jaeger
+      - hmtm_sso
+      - hmtm_toys
+      - hmtm_tickets
     volumes:
       - ./logs/hmtm_notifications:/app/logs
     networks:
