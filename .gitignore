@@ -30,6 +30,8 @@ go.work.sum
 logs/
 migrations/
 *.db
+grafana/
+prometheus.yml
 
 # Environments
 .venv

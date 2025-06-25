@@ -6,7 +6,9 @@ tasks:
     cmds:
       # Prepare infrastructure:
       - task: create_logs_folder
+      - task: create_grafana_folder
       - task: create_migrations_folders
+      - task: prepare_prometheus
 
       # Build app:
       - task: docker_build
@@ -37,6 +39,13 @@ tasks:
       - mkdir -p logs/hmtm_tickets
       - mkdir -p logs/hmtm_notifications
 
+  create_grafana_folder:
+    desc: "Create Grafana folder for docker volume purposes."
+    internal: true
+    cmds:
+      - mkdir -p grafana
+      - sudo chmod -R 777 grafana
+
   create_migrations_folders:
     desc: "Create migrations folders for docker volume purposes."
     internal: true
@@ -45,6 +54,12 @@ tasks:
       - mkdir -p migrations/hmtm_toys
       - mkdir -p migrations/hmtm_tickets
       - mkdir -p migrations/hmtm_notifications
+
+  prepare_prometheus:
+    desc: "Prepares Prometheus config."
+    internal: true
+    cmds:
+      - export $(cat .env | xargs) && envsubst < prometheus.template.yml > prometheus.yml
 
   copy_sso_migrations:
     desc: "
@@ -151,6 +166,8 @@ tasks:
       - sudo rm -rf migrations/
       - sudo rm -rf postgres_data/
       - sudo rm -rf postgres_backups/
+      - sudo rm -rf grafana/
+      - sudo rm -rf prometheus.yml
       - task: docker_clean
 
   docker_network:
