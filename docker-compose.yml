@@ -8,6 +8,7 @@ services:
       - .env.bff
     depends_on:
       - jaeger
+      - hmtm_bff_cache
       - hmtm_sso
       - hmtm_toys
       - hmtm_tickets
@@ -27,6 +28,36 @@ services:
     networks:
       - hmtm_network
     restart: unless-stopped
+
+  hmtm_bff_cache:
+    container_name: hmtm_bff_cache
+    hostname: hmtm_bff_cache
+    image: redis:latest
+    env_file:
+      - .env
+    ports:
+      - "${HMTM_BFF_CACHE_OUTER_PORT}:${HMTM_BFF_CACHE_INNER_PORT}"
+    volumes:
+      - ./redis_data/hmtm_bff:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: redis-server --requirepass ${HMTM_BFF_CACHE_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$HMTM_BFF_CACHE_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    networks:
+      - hmtm_network
 
   # Prometheus для сбора метрик
   prometheus:
@@ -67,6 +98,7 @@ services:
       - .env.sso
     depends_on:
       - hmtm_sso_database
+      - hmtm_sso_cache
       - nats
       - jaeger
     volumes:
@@ -98,7 +130,7 @@ services:
     ports:
       - "${HMTM_SSO_CACHE_OUTER_PORT}:${HMTM_SSO_CACHE_INNER_PORT}"
     volumes:
-      - ../../../redis_data/hmtm_sso:/data
+      - ./redis_data/hmtm_sso:/data
     deploy:
       resources:
         limits:
